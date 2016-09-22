@@ -1,8 +1,10 @@
 tagfast
 =======
 
-golang：优化读取struct内的tag值（只解析一次，以后都从缓存中读取。官方的版本每次使用typ.Field(i).Tag.Get("tag1")都要解析一次，效率不高）
+golang：优化结构体字段标签读取（只解析一次，以后调用Get时都从缓存中读取。）
 
+> 在使用标准库中的`typ.Field(i).Tag.Get("tag1")`时，每次都要解析一次，效率不高。  
+> 使用本包的`tagfast.Value(typ, typ.Field(i), "tag1")`来代替`typ.Field(i).Tag.Get("tag1")`即可。
 
 注意事项
 =======
