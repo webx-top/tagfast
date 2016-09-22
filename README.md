@@ -24,7 +24,7 @@ parser := func() interface{} {
 }
 
 
-if value, ok := parse.Parsed("form", parser); ok {
+if value, ok := parse.Parsed("form", parser).(map[string]string); ok {
     fmt.Println(value["checked"]) // 输出：true
     fmt.Println(value["required"]) // 输出：false
 }
