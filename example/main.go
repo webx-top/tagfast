@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/webx-top/webx/lib/tagfast"
-	"github.com/webx-top/webx/lib/tagfast/example/a/b/c"
+	"github.com/webx-top/tagfast"
+	"github.com/webx-top/tagfast/example/a/b/c"
 )
 
 func main() {

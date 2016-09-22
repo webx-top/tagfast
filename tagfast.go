@@ -25,12 +25,21 @@ import (
 
 var (
 	lock   = new(sync.RWMutex)
-	caches = make(map[string]map[string]*tagFast)
+	caches = make(map[string]map[string]*tagFast) //{"pkg.struct":{"field":Faster}}
 )
 
-func Tag(t reflect.Type, f reflect.StructField, key string) (value string, faster Faster) {
-	if f.Tag == "" {
-		return "", nil
+func Tag(t reflect.Type, f reflect.StructField, tagName string) (value string, faster Faster) {
+	faster = tag(t, f)
+	if faster == nil {
+		return
+	}
+	value = faster.Get(tagName)
+	return
+}
+
+func tag(t reflect.Type, f reflect.StructField) Faster {
+	if len(f.Tag) == 0 {
+		return nil
 	}
 	lock.RLock()
 	name := t.PkgPath() + "." + t.Name()
@@ -49,13 +58,19 @@ func Tag(t reflect.Type, f reflect.StructField, key string) (value string, faste
 		caches[name][f.Name] = fast
 	}
 	lock.RUnlock()
-	value = fast.Get(key)
-	faster = fast
-	return
+	return fast
 }
 
-func Value(t reflect.Type, f reflect.StructField, key string) (value string) {
-	value, _ = Tag(t, f, key)
+func Parsed(t reflect.Type, f reflect.StructField, tagName string) interface{} {
+	faster := tag(t, f)
+	if faster == nil {
+		return nil
+	}
+	return faster.Parsed(tagName)
+}
+
+func Value(t reflect.Type, f reflect.StructField, tagName string) (value string) {
+	value, _ = Tag(t, f, tagName)
 	return
 }
 
@@ -70,9 +85,9 @@ type Faster interface {
 }
 
 type tagFast struct {
-	tag    reflect.StructTag
-	cached map[string]string
-	parsed map[string]interface{}
+	tag    reflect.StructTag      //example: `tagA:"valA" tagB:"valB" tagC:"a,b,c"`
+	cached map[string]string      //example: {"tagA":"valA","tagB":"valB","tagC":"a,b,c"}
+	parsed map[string]interface{} //example: {"tagC":["a","b","c"]}
 }
 
 func (a *tagFast) Get(key string) string {
