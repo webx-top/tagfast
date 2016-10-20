@@ -61,12 +61,12 @@ func tag(t reflect.Type, f reflect.StructField) Faster {
 	return fast
 }
 
-func Parsed(t reflect.Type, f reflect.StructField, tagName string) interface{} {
+func Parsed(t reflect.Type, f reflect.StructField, tagName string, fns ...func() interface{}) interface{} {
 	faster := tag(t, f)
 	if faster == nil {
 		return nil
 	}
-	return faster.Parsed(tagName)
+	return faster.Parsed(tagName, fns...)
 }
 
 func Value(t reflect.Type, f reflect.StructField, tagName string) (value string) {
