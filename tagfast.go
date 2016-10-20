@@ -69,6 +69,14 @@ func Parsed(t reflect.Type, f reflect.StructField, tagName string, fns ...func()
 	return faster.Parsed(tagName, fns...)
 }
 
+func GetParsed(t reflect.Type, f reflect.StructField, tagName string, fns ...func(string) interface{}) interface{} {
+	faster := tag(t, f)
+	if faster == nil {
+		return nil
+	}
+	return faster.GetParsed(tagName, fns...)
+}
+
 func Value(t reflect.Type, f reflect.StructField, tagName string) (value string) {
 	value, _ = Tag(t, f, tagName)
 	return
@@ -81,6 +89,7 @@ func Caches() map[string]map[string]*tagFast {
 type Faster interface {
 	Get(key string) string
 	Parsed(key string, fns ...func() interface{}) interface{}
+	GetParsed(key string, fns ...func(string) interface{}) interface{}
 	SetParsed(key string, value interface{}) bool
 }
 
@@ -116,6 +125,27 @@ func (a *tagFast) Parsed(key string, fns ...func() interface{}) interface{} {
 		fn := fns[0]
 		if fn != nil {
 			v := fn()
+			a.SetParsed(key, v)
+			return v
+		}
+	}
+	return nil
+}
+
+func (a *tagFast) GetParsed(key string, fns ...func(string) interface{}) interface{} {
+	if a.parsed == nil {
+		a.parsed = make(map[string]interface{})
+	}
+	lock.RLock()
+	if v, ok := a.parsed[key]; ok {
+		lock.RUnlock()
+		return v
+	}
+	lock.RUnlock()
+	if len(fns) > 0 {
+		fn := fns[0]
+		if fn != nil {
+			v := fn(a.Get(key))
 			a.SetParsed(key, v)
 			return v
 		}
