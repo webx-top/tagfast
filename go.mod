@@ -1,3 +1,3 @@
 module github.com/webx-top/tagfast
 
-go 1.21.4
+go 1.15.0
